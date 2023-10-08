@@ -1,0 +1,44 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+code/test/add
+code/test/halt
+code/test/createFile
+code/test/fileIO_test1
+code/test/fileIO_test2
+code/test/LotOfAdd
+# Nachos
+*.coff
+# Nachos except
+!code/build.linux/*.o
+# IDE
+.vscode
