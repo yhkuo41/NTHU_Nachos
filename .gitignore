@@ -1,44 +1,59 @@
-# Prerequisites
-*.d
+# root
+.gitignore
+DISK_0
+.vscode
 
-# Compiled Object files
-*.slo
-*.lo
 *.o
-*.obj
+*.coff
 
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+# build.cygwin
+build.cygwin/*
+!build.cygwin/Makefile
+!build.cygwin/Makefile.dep
+# build.linux
+build.linux/*
+!build.linux/Makefile
+!build.linux/Makefile.dep
+# build.macosx
+build.macosx/*
+!build.macosx/Makefile
+!build.macosx/Makefile.dep
+# filesys
+filesys/*
+!filesys/*.cc
+!filesys/*.h
+# lib
+lib/*
+!lib/*.cc
+!lib/*.h
+# machine
+machine/*
+!machine/*.cc
+!machine/*.h
+# network
+network/*
+!network/*.cc
+!network/*.h
+# test
+test/*
+!test/Makefile
+!test/Makefile.dep
+!test/*.S
+!test/*.c
+!test/*.h
 code/test/add
 code/test/halt
 code/test/createFile
 code/test/fileIO_test1
 code/test/fileIO_test2
 code/test/LotOfAdd
-# Nachos
-*.coff
-# Nachos except
-!code/build.linux/*.o
-# IDE
-.vscode
+# threads
+threads/*
+!threads/*.S
+!threads/*.cc
+!threads/*.h
+# userprog
+userprog/*
+!userprog/*.S
+!userprog/*.cc
+!userprog/*.h
