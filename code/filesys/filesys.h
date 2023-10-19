@@ -71,19 +71,69 @@ public:
     }
 
     //  The OpenAFile function is used for kernel open system call
-    /*  OpenFileId OpenAFile(char *name) {
+    OpenFileId OpenAFile(char *name)
+    {
+        OpenFileId id;
+        for (id = 0; id < 20; ++id)
+        {
+            if (OpenFileTable[id] == NULL)
+            {
+                break;
+            }
         }
-        int WriteFile(char *buffer, int size, OpenFileId id){
+        // exceed the opened file limit
+        if (id == 20)
+        {
+            return -1;
         }
-        int ReadFile(char *buffer, int size, OpenFileId id){
+        // call UNIX open and check
+        int fileDescriptor = OpenForReadWrite(name, FALSE);
+        if (fileDescriptor == -1)
+        {
+            return -1;
         }
-        int CloseFile(OpenFileId id){
+        OpenFileTable[id] = new OpenFile(fileDescriptor);
+        return id;
+    }
+
+    int WriteFile_(char *buffer, int size, OpenFileId id)
+    {
+        if (is_valid_file_id(id))
+        {
+            return OpenFileTable[id]->Write(buffer, size);
         }
-    */
+        return -1;
+    }
+
+    int ReadFile(char *buffer, int size, OpenFileId id)
+    {
+        if (is_valid_file_id(id))
+        {
+            return OpenFileTable[id]->Read(buffer, size);
+        }
+        return -1;
+    }
+
+    int CloseFile(OpenFileId id)
+    {
+        if (is_valid_file_id(id))
+        {
+            delete OpenFileTable[id];
+            OpenFileTable[id] = NULL;
+            return 1;
+        }
+        return -1;
+    }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
 
     OpenFile *OpenFileTable[20];
+
+private:
+    bool is_valid_file_id(OpenFileId id)
+    {
+        return id >= 0 && id < 20 && OpenFileTable[id] != NULL;
+    }
 };
 
 #else // FILESYS
