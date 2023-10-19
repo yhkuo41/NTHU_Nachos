@@ -1,4 +1,4 @@
 #!/bin/sh
-cd ~/NachOS-4.0_MP1/code/build.linux
+cd /home/os2023/os23team41/NachOS-4.0_MP1/code/build.linux
 make clean
 make

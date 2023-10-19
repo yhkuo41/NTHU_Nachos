@@ -1,19 +1,24 @@
 #!/bin/sh
 
-bash ~/NachOS-4.0_MP1/script/build_nachos
+project_path="/home/os2023/os23team41/NachOS-4.0_MP1"
 
-# fileIO_test1
-echo "***************************************"
-rm -f ~/NachOS-4.0_MP1/code/test/file1.test
-bash ~/NachOS-4.0_MP1/script/build_and_run_test fileIO_test1
-cat ~/NachOS-4.0_MP1/code/test/file1.test
-echo ""
-echo "***************************************"
+# Build Nachos
+bash "$project_path/script/build_nachos"
 
+run_test() {
+    local test_name="$1"
+    echo "***************************************"
+    
+    if [ "$test_name" = "fileIO_test1" ]; then
+        rm -f "$project_path/code/test/file1.test"
+    fi
 
-# fileIO_test2
-echo "***************************************"
-bash ~/NachOS-4.0_MP1/script/build_and_run_test fileIO_test2
-cat ~/NachOS-4.0_MP1/code/test/file1.test
-echo ""
-echo "***************************************"
+    bash "$project_path/script/build_and_run_test" "$test_name"
+    cat "$project_path/code/test/file1.test"
+    echo ""
+    echo "***************************************"
+}
+
+# Run tests
+run_test "fileIO_test1"
+run_test "fileIO_test2"
