@@ -9,5 +9,6 @@ fi
 test_target="$1"
 cd /home/os2023/os23team41/NachOS-4.0_MP1/code/test
 make clean
+make distclean
 make $test_target
 ../build.linux/nachos -e $test_target

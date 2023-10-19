@@ -98,7 +98,7 @@ public:
 
     int WriteFile_(char *buffer, int size, OpenFileId id)
     {
-        if (is_valid_file_id(id))
+        if (buffer != NULL && size >= 0 && is_valid_file_id(id))
         {
             return OpenFileTable[id]->Write(buffer, size);
         }
@@ -107,7 +107,7 @@ public:
 
     int ReadFile(char *buffer, int size, OpenFileId id)
     {
-        if (is_valid_file_id(id))
+        if (buffer != NULL && size >= 0 && is_valid_file_id(id))
         {
             return OpenFileTable[id]->Read(buffer, size);
         }
