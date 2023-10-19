@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Check for the correct number of arguments
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <test target>"
+    exit 1
+fi
+
+test_target="$1"
+cd ~/NachOS-4.0_MP1/code/test
+make clean
+make $test_target
+../build.linux/nachos -e $test_target

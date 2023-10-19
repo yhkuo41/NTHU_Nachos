@@ -1,0 +1,19 @@
+#!/bin/sh
+
+bash ~/NachOS-4.0_MP1/script/build_nachos
+
+# fileIO_test1
+echo "***************************************"
+rm -f ~/NachOS-4.0_MP1/code/test/*.test
+bash ~/NachOS-4.0_MP1/script/build_and_run_test fileIO_test1
+cat ~/NachOS-4.0_MP1/code/test/file1.test
+echo ""
+echo "***************************************"
+
+
+# fileIO_test2
+echo "***************************************"
+bash ~/NachOS-4.0_MP1/script/build_and_run_test fileIO_test2
+cat ~/NachOS-4.0_MP1/code/test/file1.test
+echo ""
+echo "***************************************"
