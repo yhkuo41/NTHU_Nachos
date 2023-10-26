@@ -47,6 +47,8 @@ code/test/createFile
 code/test/fileIO_test1
 code/test/fileIO_test2
 code/test/fileIO_test3
+code/test/consoleIO_test1
+code/test/consoleIO_test2
 code/test/LotOfAdd
 code/test/*.test
 # threads

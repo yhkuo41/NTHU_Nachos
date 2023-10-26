@@ -1,0 +1,19 @@
+#!/bin/sh
+
+project_path="/home/os2023/os23team41/NachOS-4.0_MP2"
+
+# Build Nachos
+bash "$project_path/script/build_nachos" "$project_path"
+# Run Tests
+echo "***************************************"
+cd $project_path/code/test
+make clean
+make distclean
+make consoleIO_test1
+make consoleIO_test2
+../build.linux/nachos -e consoleIO_test1 -e consoleIO_test2
+echo "***************************************"
+
+echo "***************************************"
+../build.linux/nachos -e consoleIO_test1 -e consoleIO_test4
+echo "***************************************"

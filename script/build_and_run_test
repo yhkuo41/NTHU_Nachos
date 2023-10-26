@@ -1,13 +1,15 @@
 #!/bin/sh
 
 # Check for the correct number of arguments
-if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 <test target>"
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <test target> <project path>"
     exit 1
 fi
 
 test_target="$1"
-cd /home/os2023/os23team41/NachOS-4.0_MP1/code/test
+project_path="$2"
+
+cd $project_path/code/test
 make clean
 make distclean
 make $test_target
