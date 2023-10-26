@@ -2,7 +2,7 @@
 //	Global variables for the Nachos kernel.
 //
 // Copyright (c) 1992-1996 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef KERNEL_H
@@ -27,67 +27,63 @@ class SynchDisk;
 
 typedef int OpenFileId;
 
-class Kernel {
-  public:
-    Kernel(int argc, char **argv);
-    				// Interpret command line arguments
-    ~Kernel();		        // deallocate the kernel
-    
-    void Initialize(); 		// initialize the kernel -- separated
-				// from constructor because 
-				// refers to "kernel" as a global
-    void ExecAll();
-    int Exec(char* name);
-    void ThreadSelfTest();	// self test of threads and synchronization
-	
-    void ConsoleTest();         // interactive console self test
-    void NetworkTest();         // interactive 2-machine network test
-    Thread* getThread(int threadID){return t[threadID];}    
+class Kernel
+{
+public:
+  Kernel(int argc, char **argv);
+  // Interpret command line arguments
+  ~Kernel(); // deallocate the kernel
 
+  void Initialize(); // initialize the kernel -- separated
+                     // from constructor because
+                     // refers to "kernel" as a global
+  void ExecAll();
+  int Exec(char *name);
+  void ThreadSelfTest(); // self test of threads and synchronization
 
-    void PrintInt(int number); 	
-    int CreateFile(char* filename); // fileSystem call
-    
-    OpenFileId OpenFile(char* name); // fileSystem call
-    int WriteFile(char* buffer, int size, OpenFileId id); // fileSystem call
-    int ReadFile(char* buffer, int size, OpenFileId id); // fileSystem call
-    int CloseFile(OpenFileId id); // fileSystem call
+  void ConsoleTest(); // interactive console self test
+  void NetworkTest(); // interactive 2-machine network test
+  Thread *getThread(int threadID) { return t[threadID]; }
 
-// These are public for notational convenience; really, 
-// they're global variables used everywhere.
+  void PrintInt(int number);
+  int CreateFile(char *filename); // fileSystem call
 
-    Thread *currentThread;	// the thread holding the CPU
-    Scheduler *scheduler;	// the ready list
-    Interrupt *interrupt;	// interrupt status
-    Statistics *stats;		// performance metrics
-    Alarm *alarm;		// the software alarm clock    
-    Machine *machine;           // the simulated CPU
-    SynchConsoleInput *synchConsoleIn;
-    SynchConsoleOutput *synchConsoleOut;
-    SynchDisk *synchDisk;
-    FileSystem *fileSystem;     
-    PostOfficeInput *postOfficeIn;
-    PostOfficeOutput *postOfficeOut;
+  OpenFileId OpenFile(char *name);                      // fileSystem call
+  int WriteFile(char *buffer, int size, OpenFileId id); // fileSystem call
+  int ReadFile(char *buffer, int size, OpenFileId id);  // fileSystem call
+  int CloseFile(OpenFileId id);                         // fileSystem call
 
-    int hostName;               // machine identifier
+  // These are public for notational convenience; really,
+  // they're global variables used everywhere.
 
-  private:
+  Thread *currentThread; // the thread holding the CPU
+  Scheduler *scheduler;  // the ready list
+  Interrupt *interrupt;  // interrupt status
+  Statistics *stats;     // performance metrics
+  Alarm *alarm;          // the software alarm clock
+  Machine *machine;      // the simulated CPU
+  SynchConsoleInput *synchConsoleIn;
+  SynchConsoleOutput *synchConsoleOut;
+  SynchDisk *synchDisk;
+  FileSystem *fileSystem;
+  PostOfficeInput *postOfficeIn;
+  PostOfficeOutput *postOfficeOut;
 
-	Thread* t[10];
-	char*   execfile[10];
-	int execfileNum;
-	int threadNum;
-    bool randomSlice;		// enable pseudo-random time slicing
-    bool debugUserProg;         // single step user program
-    double reliability;         // likelihood messages are dropped
-    char *consoleIn;            // file to read console input from
-    char *consoleOut;           // file to send console output to
+  int hostName; // machine identifier
+
+private:
+  Thread *t[10];
+  char *execfile[10];
+  int execfileNum;
+  int threadNum;
+  bool randomSlice;   // enable pseudo-random time slicing
+  bool debugUserProg; // single step user program
+  double reliability; // likelihood messages are dropped
+  char *consoleIn;    // file to read console input from
+  char *consoleOut;   // file to send console output to
 #ifndef FILESYS_STUB
-    bool formatFlag;          // format the disk if this is true
+  bool formatFlag; // format the disk if this is true
 #endif
 };
 
-
 #endif // KERNEL_H
-
-
