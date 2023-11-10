@@ -1,6 +1,10 @@
 #!/bin/sh
 
-project_path="/home/os2023/os23team41/NachOS-4.0_MP2"
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <project path>"
+    exit 1
+fi
+project_path="$1"
 
 # Build Nachos
 bash "$project_path/script/build_nachos" "$project_path"
@@ -14,6 +18,6 @@ make consoleIO_test2
 ../build.linux/nachos -e consoleIO_test1 -e consoleIO_test2
 echo "***************************************"
 
-echo "***************************************"
-../build.linux/nachos -e consoleIO_test1 -e consoleIO_test4
-echo "***************************************"
+# echo "***************************************"
+# ../build.linux/nachos -e consoleIO_test1 -e consoleIO_test4
+# echo "***************************************"
