@@ -15,8 +15,22 @@
 
 #include "copyright.h"
 #include "filesys.h"
+#include "noff.h"
 
 #define UserStackSize 1024 // increase this as necessary!
+
+typedef int PageFlags;
+/**
+ * @brief Flags used to set TranslationEntry
+ *
+ */
+enum PageFlag
+{
+  VALID = 0b0001,
+  READ_ONLY = 0b0010,
+  USE = 0b0100,
+  DIRTY = 0b1000,
+};
 
 class AddrSpace
 {
@@ -48,6 +62,16 @@ private:
 
   void InitRegisters(); // Initialize user-level CPU registers,
                         // before jumping to user code
+
+  /**
+   * @brief Allocate free frames and load the segment into the page table
+   *
+   * @param segmentName For debug
+   * @param segment
+   * @param executable The user program to be loaded. NULL if we don't need to load it from file.
+   * @param flags Used to set TranslationEntry
+   */
+  void AllocateAndLoad(char const *segmentName, Segment &segment, OpenFile *executable, PageFlags flags);
 };
 
 #endif // ADDRSPACE_H

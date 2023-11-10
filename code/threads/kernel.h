@@ -18,6 +18,7 @@
 #include "alarm.h"
 #include "filesys.h"
 #include "machine.h"
+#include "bitmap.h"
 
 class PostOfficeInput;
 class PostOfficeOutput;
@@ -53,6 +54,19 @@ public:
   int ReadFile(char *buffer, int size, OpenFileId id);  // fileSystem call
   int CloseFile(OpenFileId id);                         // fileSystem call
 
+  /**
+   * @brief Try to get a free frame from the frame table
+   *
+   * @return int The number of the free fram
+   */
+  int GetFreeFrame();
+  /**
+   * @brief Return a free frame to the kernel
+   *
+   * @param frameNumber
+   */
+  void ReturnFreeFrame(int frameNumber);
+
   // These are public for notational convenience; really,
   // they're global variables used everywhere.
 
@@ -81,6 +95,7 @@ private:
   double reliability; // likelihood messages are dropped
   char *consoleIn;    // file to read console input from
   char *consoleOut;   // file to send console output to
+  Bitmap frameTable;
 #ifndef FILESYS_STUB
   bool formatFlag; // format the disk if this is true
 #endif

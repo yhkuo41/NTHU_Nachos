@@ -24,7 +24,7 @@
 //	for the initialization (see also comments in main.cc)
 //----------------------------------------------------------------------
 
-Kernel::Kernel(int argc, char **argv)
+Kernel::Kernel(int argc, char **argv) : frameTable(Bitmap(NumPhysPages))
 {
     randomSlice = FALSE;
     debugUserProg = FALSE;
@@ -319,3 +319,22 @@ int Kernel::Exec(char *name)
     //    Kernel::Run();
     //  cout << "after ThreadedKernel:Run();" << endl;  // unreachable
 }
+
+int Kernel::GetFreeFrame()
+{
+    int frameNumber = frameTable.FindAndSet();
+    if (frameNumber == -1)
+    { // Because scheduler does not yet support swapping, abort the program directly here
+        ExceptionHandler(MemoryLimitException);
+    }
+    // zero out the frame
+    int frameBase = frameNumber * PageSize;
+    bzero(machine->mainMemory + frameBase, PageSize);
+    return frameNumber;
+};
+
+void Kernel::ReturnFreeFrame(int frameNumber)
+{
+    // Bitmap will check if the number is within the range
+    frameTable.Clear(frameNumber);
+};
