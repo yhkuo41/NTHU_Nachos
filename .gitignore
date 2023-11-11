@@ -5,6 +5,7 @@ DISK_0
 
 *.o
 *.coff
+*.log
 
 # build.cygwin
 build.cygwin/*
@@ -49,6 +50,9 @@ code/test/fileIO_test2
 code/test/fileIO_test3
 code/test/consoleIO_test1
 code/test/consoleIO_test2
+code/test/sort
+code/test/segments
+code/test/matmult
 code/test/LotOfAdd
 code/test/*.test
 # threads

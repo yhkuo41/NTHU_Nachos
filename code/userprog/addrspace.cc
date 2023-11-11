@@ -103,8 +103,6 @@ bool AddrSpace::Load(char *fileName)
 {
     OpenFile *executable = kernel->fileSystem->Open(fileName);
     NoffHeader noffH;
-    unsigned int size;
-
     if (executable == NULL)
     {
         cerr << "Unable to open file " << fileName << "\n";
@@ -117,28 +115,17 @@ bool AddrSpace::Load(char *fileName)
         SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
 
+    int remaining = 0;
+    AllocateAndLoad("code", noffH.code, executable, VALID | READ_ONLY, remaining);
 #ifdef RDATA
-    // how big is address space?
-    size = noffH.code.size + noffH.readonlyData.size + noffH.initData.size +
-           noffH.uninitData.size + UserStackSize;
-    // we need to increase the size
-    // to leave room for the stack
-#else
-    // how big is address space?
-    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size + UserStackSize; // we need to increase the size
-                                                                                          // to leave room for the stack
+    AllocateAndLoad("read only data", noffH.readonlyData, executable, VALID | READ_ONLY, remaining);
 #endif
-    AllocateAndLoad("code", noffH.code, executable, VALID | READ_ONLY);
-#ifdef RDATA
-    AllocateAndLoad("read only data", noffH.readonlyData, executable, VALID | READ_ONLY);
-#endif
-    AllocateAndLoad("data", noffH.initData, executable, VALID);
+    AllocateAndLoad("data", noffH.initData, executable, VALID, remaining);
     // user stack and uninit data do not exist in the executable
-    AllocateAndLoad("uninit data", noffH.uninitData, NULL, VALID);
+    AllocateAndLoad("uninit data", noffH.uninitData, NULL, VALID, remaining);
     Segment dummy{-1, -1, UserStackSize}; // just for function compatibility.
-    AllocateAndLoad("user stack", dummy, NULL, VALID);
-    size = numPages * PageSize;
-    DEBUG(dbgAddr, "AddrSpace " << fileName << " with size " << size << " uses " << numPages << " pages");
+    AllocateAndLoad("user stack", dummy, NULL, VALID, remaining);
+    DEBUG(dbgAddr, "AddrSpace " << fileName << " with size " << numPages * PageSize << " uses " << numPages << " pages");
 
     delete executable; // close file
     return TRUE;       // success
@@ -282,24 +269,42 @@ AddrSpace::Translate(unsigned int vaddr, unsigned int *paddr, int isReadWrite)
     return NoException;
 }
 
-void AddrSpace::AllocateAndLoad(char const *segmentName, Segment &segment, OpenFile *executable, PageFlags flags)
+void AddrSpace::AllocateAndLoad(char const *segmentName, Segment &segment, OpenFile *executable, PageFlags flags, int &remaining)
 {
     if (segment.size <= 0)
     {
         return;
     }
-    int numPageCurSegment = divRoundUp(segment.size, PageSize);
-    DEBUG(dbgAddr, "Initializing " << segmentName << " segment with size " << segment.size << " uses " << numPageCurSegment << " pages");
-    for (int i = 0; i < numPageCurSegment; ++i)
+    DEBUG(dbgAddr, "Initializing " << segmentName << " segment with size " << segment.size);
+    int inFilePosition = segment.inFileAddr;
+    // use the remaining space of the last page first
+    if (remaining > 0)
+    {
+        if (executable != NULL)
+        {
+            int frameBase = pageTable[numPages - 1].physicalPage * PageSize;
+            // don't read too much into the last page.
+            int numBytes = min(remaining, segment.size);
+            executable->ReadAt(&(kernel->machine->mainMemory[frameBase]), numBytes, inFilePosition);
+            inFilePosition += numBytes;
+        }
+        // set up page table entry
+        pageTable[numPages - 1].valid = flags & VALID;
+        pageTable[numPages - 1].use = flags & USE;
+        pageTable[numPages - 1].dirty = flags & DIRTY;
+        pageTable[numPages - 1].readOnly = flags & READ_ONLY;
+    }
+    int unallocatedSize = segment.size - remaining;
+    while (unallocatedSize > 0)
     {
         int frameNumber = kernel->GetFreeFrame();
         if (executable != NULL)
         {
             int frameBase = frameNumber * PageSize;
             // don't read too much into the last page.
-            int numBytes = (i == numPageCurSegment - 1) ? segment.size - i * PageSize : PageSize;
-            int position = segment.inFileAddr + i * PageSize;
-            executable->ReadAt(&(kernel->machine->mainMemory[frameBase]), numBytes, position);
+            int numBytes = min(unallocatedSize, PageSize);
+            executable->ReadAt(&(kernel->machine->mainMemory[frameBase]), numBytes, inFilePosition);
+            inFilePosition += numBytes;
         }
         // set up page table entry
         pageTable[numPages].virtualPage = numPages;
@@ -309,6 +314,8 @@ void AddrSpace::AllocateAndLoad(char const *segmentName, Segment &segment, OpenF
         pageTable[numPages].dirty = flags & DIRTY;
         pageTable[numPages].readOnly = flags & READ_ONLY;
         ++numPages;
+        unallocatedSize -= PageSize;
     }
-    DEBUG(dbgAddr, segment.virtualAddr << ", " << segment.size);
+    remaining = -unallocatedSize;
+    DEBUG(dbgAddr, segmentName << " segment virtualAddr " << segment.virtualAddr << ", segment size " << segment.size);
 }

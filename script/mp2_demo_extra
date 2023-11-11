@@ -1,0 +1,34 @@
+#!/bin/sh
+# using the following command to redirect both cout and cerr
+# sh ./script/mp2_demo_extra "$PWD" > mp2_extra_cout.log 2> mp2_extra_cerr.log
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <project path>"
+    exit 1
+fi
+project_path="$1"
+
+# Build Nachos
+bash "$project_path/script/build_nachos" "$project_path"
+cd $project_path/code/test
+make clean
+make distclean
+make consoleIO_test1 consoleIO_test2 sort segments matmult
+
+# Run Tests
+echo "***************************************"
+../build.linux/nachos -e segments
+echo "***************************************"
+
+# echo "***************************************"
+# ../build.linux/nachos -e sort
+# echo "***************************************"
+
+# echo "***************************************"
+# ../build.linux/nachos -e matmult # should output "return value:7220"
+# echo "***************************************"
+
+# echo "***************************************"
+# ../build.linux/nachos -e consoleIO_test1 -e consoleIO_test2 -e sort -e segments -e matmult # should output "Unexpected user mode exception 8"
+# echo "***************************************"
+

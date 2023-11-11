@@ -70,8 +70,9 @@ private:
    * @param segment
    * @param executable The user program to be loaded. NULL if we don't need to load it from file.
    * @param flags Used to set TranslationEntry
+   * @param remaining Remaining space of the last page
    */
-  void AllocateAndLoad(char const *segmentName, Segment &segment, OpenFile *executable, PageFlags flags);
+  void AllocateAndLoad(char const *segmentName, Segment &segment, OpenFile *executable, PageFlags flags, int &remaining);
 };
 
 #endif // ADDRSPACE_H
