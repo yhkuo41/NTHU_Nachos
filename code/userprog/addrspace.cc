@@ -57,7 +57,7 @@ SwapHeader(NoffHeader *noffH)
 // AddrSpace::AddrSpace
 // 	Create an address space to run a user program
 //----------------------------------------------------------------------
-AddrSpace::AddrSpace()
+AddrSpace::AddrSpace() : numPages(0)
 {
     pageTable = new TranslationEntry[NumPhysPages];
     for (int i = 0; i < NumPhysPages; ++i)
@@ -123,9 +123,13 @@ bool AddrSpace::Load(char *fileName)
     AllocateAndLoad("data", noffH.initData, executable, VALID, remaining);
     // user stack and uninit data do not exist in the executable
     AllocateAndLoad("uninit data", noffH.uninitData, NULL, VALID, remaining);
-    Segment dummy{-1, -1, UserStackSize}; // just for function compatibility.
+    // just for function compatibility.
+    Segment dummy;
+    dummy.virtualAddr = -1;
+    dummy.inFileAddr = -1;
+    dummy.size = UserStackSize;
     AllocateAndLoad("user stack", dummy, NULL, VALID, remaining);
-    DEBUG(dbgAddr, "AddrSpace " << fileName << " with size " << numPages * PageSize << " uses " << numPages << " pages");
+    DEBUG(dbgBeta, "AddrSpace " << fileName << " with size " << numPages * PageSize << " uses " << numPages << " pages, and its pageTable is at " << pageTable);
 
     delete executable; // close file
     return TRUE;       // success
@@ -317,5 +321,5 @@ void AddrSpace::AllocateAndLoad(char const *segmentName, Segment &segment, OpenF
         unallocatedSize -= PageSize;
     }
     remaining = -unallocatedSize;
-    DEBUG(dbgAddr, segmentName << " segment virtualAddr " << segment.virtualAddr << ", segment size " << segment.size);
+    DEBUG(dbgBeta, segmentName << " segment virtualAddr " << segment.virtualAddr << ", segment size " << segment.size);
 }

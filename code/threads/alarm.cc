@@ -47,8 +47,20 @@ void Alarm::CallBack()
 {
     Interrupt *interrupt = kernel->interrupt;
     MachineStatus status = interrupt->getStatus();
-
-    if (status != IdleMode)
+    // No thread to run. Hence we don't need to check aging and preemption
+    if (status == IdleMode)
+    {
+        return;
+    }
+    Scheduler *scheduler = kernel->scheduler;
+    Thread *currentThread = kernel->currentThread;
+    scheduler->aging(kernel->stats->totalTicks);
+    // after aging, some threads may preempt the current thread
+    if (scheduler->isPreempted(currentThread, kernel->stats->totalTicks))
+    {
+        interrupt->YieldOnReturn();
+    }
+    else if (scheduler->shouldDoRoundRobin(currentThread, kernel->stats->totalTicks))
     {
         interrupt->YieldOnReturn();
     }

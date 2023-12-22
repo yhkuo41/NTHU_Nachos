@@ -113,6 +113,8 @@ void SynchConsoleOutput::PutInt(int value)
     do
     {
         DEBUG(dbgTraCode, "In SynchConsoleOutput::PutChar, into consoleOutput->PutChar, " << kernel->stats->totalTicks);
+        DEBUG(dbgBeta, "Tick " << kernel->stats->totalTicks << " Thread " << kernel->currentThread->getID() << " "
+                               << kernel->currentThread->getName() << " puts char " << str[idx]);
         consoleOutput->PutChar(str[idx]);
         DEBUG(dbgTraCode, "In SynchConsoleOutput::PutChar, return from consoleOutput->PutChar, " << kernel->stats->totalTicks);
         idx++;

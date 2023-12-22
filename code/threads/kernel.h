@@ -88,6 +88,7 @@ public:
 private:
   Thread *t[10];
   char *execfile[10];
+  int threadPriorities[10];
   int execfileNum;
   int threadNum;
   bool randomSlice;   // enable pseudo-random time slicing

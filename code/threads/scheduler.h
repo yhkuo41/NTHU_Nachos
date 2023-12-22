@@ -13,6 +13,15 @@
 #include "list.h"
 #include "thread.h"
 
+// thread priority
+#define PRI_L3_MIN 0
+#define PRI_L2_MIN 50
+#define PRI_L1_MIN 100
+#define PRI_L1_MAX 149
+
+int CompareSfj(Thread *a, Thread *b);
+int ComparePriority(Thread *a, Thread *b);
+
 // The following class defines the scheduler/dispatcher abstraction --
 // the data structures and operations needed to keep track of which
 // thread is running, and which threads are ready but not running.
@@ -33,14 +42,34 @@ public:
   void CheckToBeDestroyed();
   // Print contents of ready list
   void Print();
-
+  // increse the thread priority by 10 (max 149) when the thread stays in ready state more than 1500 ticks
+  void aging(const int totalTicks);
+  // if the currentThread is preempted
+  bool isPreempted(const Thread *currentThread, const int totalTicks) const;
+  // if the current L3 thread has run more than 100 ticks and L3 queue is not empty, return true
+  bool shouldDoRoundRobin(const Thread *currentThread, const int totalTicks) const;
   // SelfTest for scheduler is implemented in class Thread
 
 private:
-  // queue of threads that are ready to run, but not running
-  List<Thread *> *readyList;
+  // SFJ
+  SortedList<Thread *> *readyList1;
+  // non-preemptive
+  SortedList<Thread *> *readyList2;
+  // round-robin
+  List<Thread *> *readyList3;
+
   // finishing thread to be destroyed by the next thread that runs
   Thread *toBeDestroyed;
+  /**
+   * @brief the corresponding ready queue level of this thread
+   *
+   * @param thread
+   * @return int 1, 2 or 3
+   */
+  int qLv(const Thread *thread) const;
+  void pushToQ(Thread *thread);
+  void aging(const int totalTicks, List<Thread *> *readyList, const int readyListLevel);
+  void popFromQMsg(Thread *thread, const int q);
 };
 
 #endif // SCHEDULER_H

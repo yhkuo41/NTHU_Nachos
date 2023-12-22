@@ -33,13 +33,13 @@ const int STACK_FENCEPOST = 0xdedbeef;
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
 
-Thread::Thread(char *threadName, int threadID)
+Thread::Thread(char *threadName, int threadID) : ts(new ThreadStatistics())
 {
     ID = threadID;
     name = threadName;
     stackTop = NULL;
     stack = NULL;
-    status = JUST_CREATED;
+    setStatus(JUST_CREATED, kernel->stats->totalTicks);
     for (int i = 0; i < MachineStateSize; i++)
     {
         machineState[i] = NULL; // not strictly necessary, since
@@ -66,7 +66,14 @@ Thread::~Thread()
     DEBUG(dbgThread, "Deleting thread: " << name);
     ASSERT(this != kernel->currentThread);
     if (stack != NULL)
+    {
         DeallocBoundedArray((char *)stack, StackSize * sizeof(int));
+    }
+    if (space != NULL)
+    {
+        delete space;
+    }
+    delete ts;
 }
 
 //----------------------------------------------------------------------
@@ -241,8 +248,14 @@ void Thread::Sleep(bool finishing)
 
     DEBUG(dbgThread, "Sleeping thread: " << name);
     DEBUG(dbgTraCode, "In Thread::Sleep, Sleeping thread: " << name << ", " << kernel->stats->totalTicks);
-
-    status = BLOCKED;
+    if (finishing)
+    {
+        setStatus(ZOMBIE, kernel->stats->totalTicks);
+    }
+    else
+    {
+        setStatus(BLOCKED, kernel->stats->totalTicks);
+    }
     // cout << "debug Thread::Sleep " << name << "wait for Idle\n";
     while ((nextThread = kernel->scheduler->FindNextToRun()) == NULL)
     {
@@ -428,4 +441,100 @@ void Thread::SelfTest()
     t->Fork((VoidFunctionPtr)SimpleThread, (void *)1);
     kernel->currentThread->Yield();
     SimpleThread(0);
+}
+
+void Thread::setStatus(ThreadStatus st, const int totalTicks)
+{
+    DEBUG(dbgBeta, "Tick [" << totalTicks << "]: Thread [" << this->getID() << "] is " << this->getName() << ", "
+                            << getStatusString(this->status) << " -> " << getStatusString(st));
+    if (this->status == RUNNING && st != RUNNING)
+    {
+        this->ts->endRunning(totalTicks);
+    }
+
+    if (st == READY)
+    {
+        ASSERT(this->status == JUST_CREATED || this->status == BLOCKED || this->status == RUNNING);
+        this->ts->readyStartTime = totalTicks;
+    }
+    else if (st == RUNNING)
+    {
+        ASSERT(this->status == READY);
+        this->ts->runningStartTime = totalTicks;
+    }
+    else if (st == BLOCKED)
+    {
+        ASSERT(this->status == RUNNING);
+        this->ts->updateApproxCpuBurstTime(this->getID(), this->getName(), totalTicks);
+    }
+    else if (st == ZOMBIE)
+    {
+        ASSERT(this->status == RUNNING);
+    }
+    this->status = st;
+}
+
+const char *Thread::getStatusString(ThreadStatus st)
+{
+    switch (st)
+    {
+    case JUST_CREATED:
+        return "JUST_CREATED";
+    case RUNNING:
+        return "RUNNING";
+    case READY:
+        return "READY";
+    case BLOCKED:
+        return "BLOCKED";
+    case ZOMBIE:
+        return "ZOMBIE";
+    default:
+        ASSERTNOTREACHED();
+    }
+}
+
+void Thread::setPriority(int p)
+{
+    ASSERT(PRI_L3_MIN <= p && p <= PRI_L1_MAX);
+    priority = p;
+}
+
+double Thread::getRemainingCpuBurstTime() const
+{
+    if (this->status != RUNNING)
+    {
+        return this->ts->remainingCpuBurstTime;
+    }
+    // the ticks passed in this running state, but not yet counted
+    int curRunningTicks = kernel->stats->totalTicks - this->ts->runningStartTime;
+    return this->ts->remainingCpuBurstTime - curRunningTicks;
+}
+
+void ThreadStatistics::endRunning(const int totalTicks)
+{
+    // the ticks passed in this running state
+    int curRunningTicks = totalTicks - runningStartTime;
+    ASSERT(curRunningTicks >= 0);
+    runningTicks += curRunningTicks;
+    preRunningTicks = runningTicks;
+    updateRemainingCpuBurstTime();
+}
+
+void ThreadStatistics::updateApproxCpuBurstTime(const int threadId, const char *threadName, const int totalTicks)
+{
+    double from = approxCpuBurstTime;
+    approxCpuBurstTime = 0.5 * runningTicks + 0.5 * approxCpuBurstTime;
+    // The formula implied by this debug message is different from the formula in the spec,
+    // but spec requires that debug messages be printed in this format.
+    DEBUG(dbgBeta, "[D] Tick [" << totalTicks << "]: Thread [" << threadId << " " << threadName << "] update approximate burst time, from: ["
+                                << from << "], add [" << runningTicks << "], to [" << approxCpuBurstTime << "]");
+    DEBUG(dbgTs, "[D] Tick [" << totalTicks << "]: Thread [" << threadId << "] update approximate burst time, from: ["
+                              << from << "], add [" << runningTicks << "], to [" << approxCpuBurstTime << "]");
+    runningTicks = 0;
+    updateRemainingCpuBurstTime();
+}
+
+void ThreadStatistics::updateRemainingCpuBurstTime()
+{
+    remainingCpuBurstTime = approxCpuBurstTime - runningTicks;
 }

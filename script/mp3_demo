@@ -1,0 +1,40 @@
+#!/bin/sh
+
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <project path> <nachose args>"
+    exit 1
+fi
+project_path="$1"
+nachose_args="$2"
+
+# Build Nachos
+bash "$project_path/script/build_nachos" "$project_path"
+# Run Tests
+echo "***************************************"
+cd $project_path/code/test
+make clean
+make distclean
+make hw3t1 hw3t2 hw3t3 hw3t4
+../build.linux/nachos $nachose_args
+echo "***************************************"
+
+# L3
+# sh ./script/mp3_demo . '-d b -ep hw3t1 0' > mp3_cout0.log 2> mp3_cerr0.log
+# sh ./script/mp3_demo . '-d b -ep hw3t1 0 -ep hw3t2 0' > mp3_cout1.log 2> mp3_cerr1.log
+# L2
+# sh ./script/mp3_demo . '-d b -ep hw3t1 50 -ep hw3t2 50' > mp3_cout2.log 2> mp3_cerr2.log
+# sh ./script/mp3_demo . '-d b -ep hw3t1 50 -ep hw3t2 90' > mp3_cout3.log 2> mp3_cerr3.log
+# L1
+# sh ./script/mp3_demo . '-d b -ep hw3t1 100 -ep hw3t2 100' > mp3_cout4.log 2> mp3_cerr4.log
+# L3->L2
+# sh ./script/mp3_demo . '-d b -ep hw3t1 40 -ep hw3t2 55' > mp3_cout5.log 2> mp3_cerr5.log
+# sh ./script/mp3_demo . '-d b -ep hw3t1 40 -ep hw3t2 90' > mp3_cout6.log 2> mp3_cerr6.log
+# L2->L1
+# sh ./script/mp3_demo . '-d b -ep hw3t1 90 -ep hw3t2 100' > mp3_cout7.log 2> mp3_cerr7.log
+# L2
+# sh ./script/mp3_demo . '-d b -ep hw3t1 60 -ep hw3t3 50' > mp3_cout8.log 2> mp3_cerr8.log
+
+# Extra
+# sh ./script/mp3_demo . '-d b -ep hw3t4 149' > mp3_cout_ex0.log 2> mp3_cerr_ex0.log
+# L3->L1
+# sh ./script/mp3_demo . '-d b -ep hw3t4 149 -e hw3t1' > mp3_cout_ex1.log 2> mp3_cerr_ex1.log

@@ -234,3 +234,8 @@ hw3t3: hw3t3.c start.o
 	$(CC) $(CFLAGS) -c hw3t3.c
 	$(LD) $(LDFLAGS) start.o hw3t3.o -o hw3t3.coff
 	$(COFF2NOFF) hw3t3.coff hw3t3
+
+hw3t4: hw3t4.c start.o
+	$(CC) $(CFLAGS) -c hw3t4.c
+	$(LD) $(LDFLAGS) start.o hw3t4.o -o hw3t4.coff
+	$(COFF2NOFF) hw3t4.coff hw3t4

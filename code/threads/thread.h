@@ -66,6 +66,36 @@ enum ThreadStatus
   ZOMBIE
 };
 
+// Routines for managing statistics about thread
+class ThreadStatistics
+{
+  friend class Thread;
+
+private:
+  // approximated CPU burst time (t_i)
+  double approxCpuBurstTime;
+  // The total running ticks within a CPU burst (T). This will be zero out when thread switches to waiting.
+  // When the thread switches to ready, this value will only stop accumulating and will not be reset to zero.
+  int runningTicks;
+  // Same as runningTicks (T), but won't reset when the thread switches to waiting. Just for debug messages.
+  int preRunningTicks;
+  // t_i - T. This value could be negative, but we don't need to handle it. Note that the value is only
+  // updated after the running state, during the running state this value is not the real remaining estimated
+  // cpu burst time.
+  double remainingCpuBurstTime;
+  int runningStartTime;
+  void updateRemainingCpuBurstTime();
+  void updateApproxCpuBurstTime(const int threadId, const char *threadName, const int totalTicks);
+  void endRunning(const int totalTicks);
+
+public:
+  int readyStartTime;
+  ThreadStatistics() : approxCpuBurstTime(0.0), runningTicks(0), preRunningTicks(0), remainingCpuBurstTime(0.0), runningStartTime(0), readyStartTime(0){};
+  int getRunningTicks() const { return runningTicks; }
+  int getPreRunningTicks() const { return preRunningTicks; }
+  int getRunningStartTime() const { return runningStartTime; }
+};
+
 // The following class defines a "thread control block" -- which
 // represents a single thread of execution.
 //
@@ -76,16 +106,40 @@ enum ThreadStatus
 //
 //  Some threads also belong to a user address space; threads
 //  that only run in the kernel have a NULL address space.
-
 class Thread
 {
 private:
   // NOTE: DO NOT CHANGE the order of these first two members.
   // THEY MUST be in this position for SWITCH to work.
-  int *stackTop;                        // the current stack pointer
-  void *machineState[MachineStateSize]; // all registers except for stackTop
+  // the current stack pointer
+  int *stackTop;
+  // all registers except for stackTop
+  void *machineState[MachineStateSize];
+  // Bottom of the stack, NULL if this is the main thread (If NULL, don't deallocate stack)
+  int *stack;
+  // ready, running or blocked
+  ThreadStatus status;
+  char *name;
+  int ID;
+  int priority;
+  // Allocate a stack for thread. Used internally by Fork()
+  void StackAllocate(VoidFunctionPtr func, void *arg);
+  const char *getStatusString(ThreadStatus st);
+  // A thread running a user program actually has *two* sets of CPU registers --
+  // one for its state while executing user code, one for its state
+  // while executing kernel code.
+
+  int userRegisters[NumTotalRegs]; // user-level CPU register state
 
 public:
+  // User code this thread is running.
+  AddrSpace *space;
+  ThreadStatistics *ts;
+  // save user-level register state
+  void SaveUserState();
+  // restore user-level register state
+  void RestoreUserState();
+
   Thread(char *debugName, int threadID); // initialize a Thread
   ~Thread();                             // deallocate a Thread
                                          // NOTE -- thread being deleted
@@ -94,48 +148,29 @@ public:
 
   // basic thread operations
 
-  void Fork(VoidFunctionPtr func, void *arg);
   // Make thread run (*func)(arg)
-  void Yield();               // Relinquish the CPU if any
-                              // other thread is runnable
-  void Sleep(bool finishing); // Put the thread to sleep and
-                              // relinquish the processor
-  void Begin();               // Startup code for the thread
-  void Finish();              // The thread is done executing
-
-  void CheckOverflow(); // Check if thread stack has overflowed
-  void setStatus(ThreadStatus st) { status = st; }
-  ThreadStatus getStatus() { return (status); }
-  char *getName() { return (name); }
-
-  int getID() { return (ID); }
+  void Fork(VoidFunctionPtr func, void *arg);
+  // Relinquish the CPU if any other thread is runnable
+  void Yield();
+  // Put the thread to sleep and relinquish the processor
+  void Sleep(bool finishing);
+  // Startup code for the thread
+  void Begin();
+  // The thread is done executing
+  void Finish();
+  // Check if thread stack has overflowed
+  void CheckOverflow();
+  // change thread status and update statistics info
+  void setStatus(ThreadStatus st, const int totalTicks);
+  ThreadStatus getStatus() const { return (status); }
+  int getPriority() const { return priority; }
+  void setPriority(int p);
+  double getRemainingCpuBurstTime() const;
+  char *getName() const { return (name); }
+  int getID() const { return (ID); }
   void Print() { cout << name; }
-  void SelfTest(); // test whether thread impl is working
-
-private:
-  // some of the private data for this class is listed above
-
-  int *stack;          // Bottom of the stack
-                       // NULL if this is the main thread
-                       // (If NULL, don't deallocate stack)
-  ThreadStatus status; // ready, running or blocked
-  char *name;
-  int ID;
-  void StackAllocate(VoidFunctionPtr func, void *arg);
-  // Allocate a stack for thread.
-  // Used internally by Fork()
-
-  // A thread running a user program actually has *two* sets of CPU registers --
-  // one for its state while executing user code, one for its state
-  // while executing kernel code.
-
-  int userRegisters[NumTotalRegs]; // user-level CPU register state
-
-public:
-  void SaveUserState();    // save user-level register state
-  void RestoreUserState(); // restore user-level register state
-
-  AddrSpace *space; // User code this thread is running.
+  // test whether thread impl is working
+  void SelfTest();
 };
 
 // external function, dummy routine whose sole job is to call Thread::Print

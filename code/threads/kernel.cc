@@ -53,7 +53,15 @@ Kernel::Kernel(int argc, char **argv) : frameTable(Bitmap(NumPhysPages))
         else if (strcmp(argv[i], "-e") == 0)
         {
             execfile[++execfileNum] = argv[++i];
+            threadPriorities[execfileNum] = 0;
             cout << execfile[execfileNum] << "\n";
+        }
+        else if (strcmp(argv[i], "-ep") == 0)
+        {
+            ASSERT(i + 2 < argc);
+            execfile[++execfileNum] = argv[++i];
+            threadPriorities[execfileNum] = atoi(argv[++i]);
+            DEBUG(dbgBeta, "thread " << execfile[execfileNum] << " initial priority " << threadPriorities[execfileNum]);
         }
         else if (strcmp(argv[i], "-ci") == 0)
         {
@@ -110,11 +118,12 @@ void Kernel::Initialize()
     // We didn't explicitly allocate the current thread we are running in.
     // But if it ever tries to give up the CPU, we better have a Thread
     // object to save its state.
-
+    stats = new Statistics();
     currentThread = new Thread("main", threadNum++);
-    currentThread->setStatus(RUNNING);
+    currentThread->setStatus(READY, stats->totalTicks);
+    currentThread->setStatus(RUNNING, stats->totalTicks);
 
-    stats = new Statistics();       // collect statistics
+    // collect statistics
     interrupt = new Interrupt;      // start up interrupt handling
     scheduler = new Scheduler();    // initialize the ready queue
     alarm = new Alarm(randomSlice); // start up time slicing
@@ -127,8 +136,8 @@ void Kernel::Initialize()
 #else
     fileSystem = new FileSystem(formatFlag);
 #endif // FILESYS_STUB
-    postOfficeIn = new PostOfficeInput(10);
-    postOfficeOut = new PostOfficeOutput(reliability);
+    // postOfficeIn = new PostOfficeInput(10);
+    // postOfficeOut = new PostOfficeOutput(reliability);
 
     interrupt->Enable();
 }
@@ -149,8 +158,8 @@ Kernel::~Kernel()
     delete synchConsoleOut;
     delete synchDisk;
     delete fileSystem;
-    delete postOfficeIn;
-    delete postOfficeOut;
+    // delete postOfficeIn;
+    // delete postOfficeOut;
 
     Exit(0);
 }
@@ -288,6 +297,7 @@ void Kernel::ExecAll()
 int Kernel::Exec(char *name)
 {
     t[threadNum] = new Thread(name, threadNum);
+    t[threadNum]->setPriority(threadPriorities[threadNum]);
     t[threadNum]->space = new AddrSpace();
     t[threadNum]->Fork((VoidFunctionPtr)&ForkExecute, (void *)t[threadNum]);
     threadNum++;

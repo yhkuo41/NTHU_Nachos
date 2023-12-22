@@ -183,6 +183,9 @@ Lock::~Lock()
 
 void Lock::Acquire()
 {
+    DEBUG(dbgBeta, "Tick " << kernel->stats->totalTicks << " thread " << kernel->currentThread->getID()
+                           << " " << kernel->currentThread->getName() << " acquire lock " << this << ", which is hold by "
+                           << (lockHolder == NULL ? "" : lockHolder->getName()));
     semaphore->P();
     lockHolder = kernel->currentThread;
 }
@@ -200,6 +203,8 @@ void Lock::Acquire()
 
 void Lock::Release()
 {
+    DEBUG(dbgBeta, "Tick " << kernel->stats->totalTicks << " thread " << kernel->currentThread->getID()
+                           << " " << kernel->currentThread->getName() << " release lock " << this);
     ASSERT(IsHeldByCurrentThread());
     lockHolder = NULL;
     semaphore->V();

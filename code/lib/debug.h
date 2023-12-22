@@ -30,6 +30,8 @@ const char dbgAddr = 'a'; 		// address spaces
 const char dbgNet = 'n'; 		// network emulation
 const char dbgSys = 'u';                // systemcall
 const char dbgTraCode = 'c';
+const char dbgTs = 'z'; // flag for MP3
+const char dbgBeta = 'b'; // local test
 
 class Debug {
   public:
