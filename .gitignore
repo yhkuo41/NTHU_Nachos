@@ -1,7 +1,7 @@
 # root
 .gitignore
 DISK_0
-.vscode
+# .vscode
 
 *.o
 *.coff
@@ -53,6 +53,7 @@ code/test/consoleIO_test2
 code/test/hw3t1
 code/test/hw3t2
 code/test/hw3t3
+code/test/hw3t4
 code/test/sort
 code/test/segments
 code/test/matmult
