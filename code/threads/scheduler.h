@@ -19,7 +19,7 @@
 #define PRI_L1_MIN 100
 #define PRI_L1_MAX 149
 
-int CompareSfj(Thread *a, Thread *b);
+int CompareSjf(Thread *a, Thread *b);
 int ComparePriority(Thread *a, Thread *b);
 
 // The following class defines the scheduler/dispatcher abstraction --
@@ -51,7 +51,7 @@ public:
   // SelfTest for scheduler is implemented in class Thread
 
 private:
-  // SFJ
+  // SJF
   SortedList<Thread *> *readyList1;
   // non-preemptive
   SortedList<Thread *> *readyList2;

@@ -31,7 +31,7 @@
 
 Scheduler::Scheduler()
 {
-    readyList1 = new SortedList<Thread *>(CompareSfj);
+    readyList1 = new SortedList<Thread *>(CompareSjf);
     readyList2 = new SortedList<Thread *>(ComparePriority);
     readyList3 = new List<Thread *>;
     toBeDestroyed = NULL;
@@ -352,7 +352,7 @@ bool Scheduler::shouldDoRoundRobin(const Thread *currentThread, const int totalT
     return FALSE;
 }
 
-int CompareSfj(Thread *a, Thread *b)
+int CompareSjf(Thread *a, Thread *b)
 {
     double ra = a->getRemainingCpuBurstTime();
     double rb = b->getRemainingCpuBurstTime();
